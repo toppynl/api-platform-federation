@@ -24,9 +24,19 @@ class FederatedSchemaBuilderDecorator implements SchemaBuilderInterface
     {
         $schema = $this->inner->getSchema();
         $this->loader->load($this->buildTypeMap($schema));
-        return FederatedSchemaBuilder::from($schema)
-            ->withRegistry($this->registry)
-            ->build();
+
+        $builder = FederatedSchemaBuilder::from($schema)
+            ->withRegistry($this->registry);
+
+        // Register entity keys on the builder so the _Entity union and @key SDL
+        // annotations are emitted for every type that was loaded with @FederationKey.
+        // getEntityKeyMap() accumulates across all load() calls (including those made
+        // before this decorator was constructed), so pre-populated loaders work too.
+        foreach ($this->loader->getEntityKeyMap() as $typeName => $fields) {
+            $builder->withEntityKey($typeName, $fields);
+        }
+
+        return $builder->build();
     }
 
     private function buildTypeMap(Schema $schema): array
