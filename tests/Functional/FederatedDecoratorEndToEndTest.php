@@ -94,12 +94,15 @@ class FederatedDecoratorEndToEndTest extends TestCase
 
         $resourceResolver = $this->createMock(ResourceReferenceResolver::class);
         $loader = new AttributeReferenceResolverLoader($resourceResolver, $registry);
+        $inner  = new FakeSchemBuilder($this->baseSchema);
 
-        // Load type map so the decorator knows FunctionalProduct has @FederationKey
-        $loader->load(['FunctionalProduct' => ['class' => FunctionalProduct::class]]);
-
-        $inner = new FakeSchemBuilder($this->baseSchema);
-
-        return new FederatedSchemaBuilderDecorator($inner, $registry, $loader);
+        // Use an anonymous subclass so buildTypeMap() returns the real type map
+        // without needing a DI compiler pass.
+        return new class($inner, $registry, $loader) extends FederatedSchemaBuilderDecorator {
+            protected function buildTypeMap(\GraphQL\Type\Schema $schema): array
+            {
+                return ['FunctionalProduct' => ['class' => FunctionalProduct::class]];
+            }
+        };
     }
 }

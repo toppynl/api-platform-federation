@@ -6,15 +6,6 @@ use Toppynl\GraphQLFederation\ReferenceResolverRegistry;
 
 class AttributeReferenceResolverLoader
 {
-    /**
-     * Accumulated map of typeName → key fields string for all types that have
-     * been loaded with a @FederationKey attribute.  Used by
-     * FederatedSchemaBuilderDecorator to register entity keys on the builder.
-     *
-     * @var array<string, string>
-     */
-    private array $entityKeyMap = [];
-
     public function __construct(
         private readonly ResourceReferenceResolver $resolver,
         private readonly ReferenceResolverRegistry $registry,
@@ -22,9 +13,12 @@ class AttributeReferenceResolverLoader
 
     /**
      * @param array<string, array{class: string}> $typeMap typeName → ['class' => FQCN]
+     * @return array<string, string> typeName → key fields string for each type with a @FederationKey attribute
      */
-    public function load(array $typeMap): void
+    public function load(array $typeMap): array
     {
+        $result = [];
+
         foreach ($typeMap as $typeName => $meta) {
             $resourceClass = $meta['class'];
             if (!class_exists($resourceClass)) {
@@ -35,9 +29,9 @@ class AttributeReferenceResolverLoader
             if (empty($keyAttrs)) {
                 continue;
             }
-            /** @var FederationKey $key */
-            $key = $keyAttrs[0]->newInstance();
-            $this->entityKeyMap[$typeName] = $key->fields;
+            /** @var FederationKey $keyAttr */
+            $keyAttr = $keyAttrs[0]->newInstance();
+            $result[$typeName] = $keyAttr->fields;
 
             // Only register if not already present — allows callers to
             // pre-register custom resolvers before load() is called.
@@ -49,15 +43,7 @@ class AttributeReferenceResolverLoader
                 );
             }
         }
-    }
 
-    /**
-     * Returns all typeName → key fields pairs accumulated across all load() calls.
-     *
-     * @return array<string, string>
-     */
-    public function getEntityKeyMap(): array
-    {
-        return $this->entityKeyMap;
+        return $result;
     }
 }
