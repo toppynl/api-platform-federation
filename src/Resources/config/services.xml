@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services
+               https://symfony.com/schema/dic/services/services-1.0.xsd">
+  <services>
+
+    <service id="toppynl.graphql_federation.resolver_registry"
+             class="Toppynl\GraphQLFederation\ReferenceResolverRegistry"
+             public="false"/>
+
+    <service id="toppynl.graphql_federation.resource_resolver"
+             class="Toppynl\ApiPlatformFederation\Bridge\ResourceReferenceResolver"
+             public="false">
+      <argument type="service" id="api_platform.state_provider"/>
+    </service>
+
+    <service id="toppynl.graphql_federation.attribute_loader"
+             class="Toppynl\ApiPlatformFederation\Bridge\AttributeReferenceResolverLoader"
+             public="false">
+      <argument type="service" id="toppynl.graphql_federation.resource_resolver"/>
+      <argument type="service" id="toppynl.graphql_federation.resolver_registry"/>
+    </service>
+
+    <service id="toppynl.graphql_federation.schema_decorator"
+             class="Toppynl\ApiPlatformFederation\Bridge\FederatedSchemaBuilderDecorator"
+             decorates="api_platform.graphql.schema_builder"
+             public="false">
+      <argument type="service" id="toppynl.graphql_federation.schema_decorator.inner"/>
+      <argument type="service" id="toppynl.graphql_federation.resolver_registry"/>
+      <argument type="service" id="toppynl.graphql_federation.attribute_loader"/>
+    </service>
+
+  </services>
+</container>
