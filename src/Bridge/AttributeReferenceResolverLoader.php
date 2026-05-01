@@ -31,15 +31,22 @@ class AttributeReferenceResolverLoader
             }
 
             $keyFieldSets = [];
-            $resolvable   = true;
-            foreach ($keyAttrs as $i => $attrRef) {
+            $resolvable   = null;
+            foreach ($keyAttrs as $attrRef) {
                 /** @var FederationKey $attr */
-                $attr = $attrRef->newInstance();
+                $attr           = $attrRef->newInstance();
                 $keyFieldSets[] = $attr->fields;
-                if ($i === 0) {
+
+                if ($resolvable === null) {
                     $resolvable = $attr->resolvable;
+                } elseif ($resolvable !== $attr->resolvable) {
+                    throw new \LogicException(
+                        "All #[FederationKey] attributes on {$resourceClass} must agree on 'resolvable'. " .
+                        'Mixed resolvable values on the same type are not supported.',
+                    );
                 }
             }
+            $resolvable ??= true;
 
             $result[$typeName] = ['keyFieldSets' => $keyFieldSets, 'resolvable' => $resolvable];
 
