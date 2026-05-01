@@ -28,8 +28,8 @@ class FederatedSchemaBuilderDecorator implements SchemaBuilderInterface
         $builder = FederatedSchemaBuilder::from($schema)
             ->withRegistry($this->registry);
 
-        foreach ($entityKeyMap as $typeName => $fields) {
-            $builder->withEntityKey($typeName, $fields);
+        foreach ($entityKeyMap as $typeName => $meta) {
+            $builder->withEntityKey($typeName, $meta['keyFieldSets'], $meta['resolvable']);
         }
 
         return $builder->build();

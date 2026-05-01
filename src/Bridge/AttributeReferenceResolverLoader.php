@@ -13,7 +13,7 @@ class AttributeReferenceResolverLoader
 
     /**
      * @param array<string, array{class: string}> $typeMap typeName → ['class' => FQCN]
-     * @return array<string, string> typeName → key fields string for each type with a @FederationKey attribute
+     * @return array<string, array{keyFieldSets: string[], resolvable: bool}>
      */
     public function load(array $typeMap): array
     {
@@ -29,13 +29,23 @@ class AttributeReferenceResolverLoader
             if (empty($keyAttrs)) {
                 continue;
             }
-            /** @var FederationKey $keyAttr */
-            $keyAttr = $keyAttrs[0]->newInstance();
-            $result[$typeName] = $keyAttr->fields;
 
-            // Only register if not already present — allows callers to
+            $keyFieldSets = [];
+            $resolvable   = true;
+            foreach ($keyAttrs as $i => $attrRef) {
+                /** @var FederationKey $attr */
+                $attr = $attrRef->newInstance();
+                $keyFieldSets[] = $attr->fields;
+                if ($i === 0) {
+                    $resolvable = $attr->resolvable;
+                }
+            }
+
+            $result[$typeName] = ['keyFieldSets' => $keyFieldSets, 'resolvable' => $resolvable];
+
+            // Only register if resolvable and not already present — allows callers to
             // pre-register custom resolvers before load() is called.
-            if (!$this->registry->has($typeName)) {
+            if ($resolvable && !$this->registry->has($typeName)) {
                 $resolver = $this->resolver;
                 $this->registry->register(
                     $typeName,
