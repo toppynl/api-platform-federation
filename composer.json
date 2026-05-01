@@ -1,0 +1,29 @@
+{
+  "name": "toppynl/api-platform-federation",
+  "description": "GraphQL Federation v2 bridge for API Platform v3 (Symfony bundle)",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "repositories": [
+    {"type": "path", "url": "../graphql-federation"}
+  ],
+  "require": {
+    "php": ">=8.1",
+    "toppynl/graphql-federation": "@dev",
+    "api-platform/core": "^3.0",
+    "symfony/framework-bundle": "^6.4 || ^7.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.0",
+    "symfony/test-pack": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Toppynl\\ApiPlatformFederation\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Toppynl\\ApiPlatformFederation\\Tests\\": "tests/"
+    }
+  }
+}
